@@ -389,12 +389,53 @@ stt.textContent=tracks.length;sto.textContent=tracks.filter(function(t){return t
 
 function rmTrk(i){if(i<0||i>=tracks.length)return;if(i===ci){pauseAudio();ae.src='';ci=-1;tt.textContent='请选择一首歌曲';ta.textContent='雪域之声 · 音乐';showAA(null);renderLyrics([]);lyTime.textContent='';lySource.textContent=''}else if(i<ci)ci--;tracks.splice(i,1);filtTracks()}
 
-function playTrk(idx){if(idx<0||idx>=tracks.length)return;ci=idx;var t=tracks[idx];tt.textContent=t.title;ta.textContent=t.artist;vb.style.background='linear-gradient(135deg,'+t.color+',var(--tb))';showAA(t.coverUrl||null);
-if(t.url){
-  ae.src=t.url;ae.load();
-  setTimeout(function(){playAudio()},200);
-}else{em.style.display='block';em.textContent='此歌曲暂无音频';return}
-em.style.display='none';renderLyrics(t.lyrics&&t.lyrics.length?t.lyrics:[]);lySource.textContent=t.lyrics&&t.lyrics.length?'歌词来源: 网易云音乐':'暂无歌词';renderL()}
+// 预加载缓存
+var preloadCache={};
+
+function preloadSong(idx){
+  if(idx<0||idx>=tracks.length)return;
+  var t=tracks[idx];
+  if(!t.url||preloadCache[idx]||t.src==='netease')return;
+  fetch(t.url).then(function(r){return r.blob()}).then(function(blob){
+    preloadCache[idx]=URL.createObjectURL(blob);
+  }).catch(function(){});
+}
+
+function playTrk(idx){
+  if(idx<0||idx>=tracks.length)return;
+  ci=idx;var t=tracks[idx];
+  tt.textContent=t.title;ta.textContent=t.artist;
+  vb.style.background='linear-gradient(135deg,'+t.color+',var(--tb))';
+  showAA(t.coverUrl||null);
+  if(t.url){
+    em.style.display='block';em.textContent='正在加载...';
+    var loadUrl=preloadCache[idx]||t.url;
+    ae.src=loadUrl;
+    ae.load();
+    ae.oncanplay=function(){
+      em.style.display='none';
+      ae.oncanplay=null;
+      playAudio();
+      // 预加载下一首
+      preloadSong((idx+1)%tracks.length);
+    };
+    ae.onerror=function(){
+      if(preloadCache[idx]){
+        // 预加载的blob失败，尝试原始URL
+        delete preloadCache[idx];
+        ae.src=t.url;ae.load();
+      }else{
+        em.style.display='block';em.textContent='加载失败，正在重试...';
+        setTimeout(function(){playTrk(idx)},1000);
+      }
+    };
+  }else{
+    em.style.display='block';em.textContent='此歌曲暂无音频';return;
+  }
+  renderLyrics(t.lyrics&&t.lyrics.length?t.lyrics:[]);
+  lySource.textContent=t.lyrics&&t.lyrics.length?'歌词来源: 网易云音乐':'暂无歌词';
+  renderL();
+}
 
 function playNext(){if(!tracks.length)return;var i=(ci+1)%tracks.length;playTrk(i)}
 function playPrev(){if(!tracks.length)return;var i=ci-1;if(i<0)i=tracks.length-1;playTrk(i)}
@@ -433,6 +474,8 @@ tracks.push({title:name,artist:'本地文件',cat:'local',dur:'--:--',color:'#33
 filtTracks();em.style.display='none'}
 
 dq.textContent=q[Math.floor(Math.random()*q.length)];renderLyrics([]);filtTracks();
+// 预加载前3首
+for(var pi=0;pi<Math.min(3,tracks.length);pi++)preloadSong(pi);
 document.onkeydown=function(e){if(e.target.tagName==='INPUT')return;if(e.code==='Space'){e.preventDefault();togglePlay()}if(e.code==='ArrowRight')playNext();if(e.code==='ArrowLeft')playPrev()};
 
 // 天气获取 - 浏览器定位获取本地天气
