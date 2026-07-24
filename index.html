@@ -10,9 +10,10 @@
 :root{--tr:#8B1A1A;--tg:#D4A017;--tb:#1E4D8C;--td:#0D2137;--tw:#F5F0E8;--to:#CC5500}
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{overflow-x:hidden;width:100%;min-height:100vh}
-body{font-family:'Noto Serif SC',serif;color:var(--tw)}
+body{font-family:'Noto Serif SC',serif;color:var(--tw);background:#0D2137}
 .bg-wrap{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;overflow:hidden}
-.bg-img{width:100%;height:100%;object-fit:cover;filter:blur(4px) brightness(0.65) saturate(1.1);transform:scale(1.05)}
+.bg-img{width:100%;height:100%;object-fit:cover;filter:blur(4px) brightness(0.65) saturate(1.1);transform:scale(1.05);opacity:0;transition:opacity .8s ease}
+.bg-img.loaded{opacity:1}
 .bg-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(13,33,55,0.2);z-index:-1}
 .pf{height:6px;background:linear-gradient(90deg,#fff 0%,#FF4500 12%,#FFD700 24%,#228B22 36%,#87CEEB 48%,#9370DB 60%,#FF69B4 72%,#fff 84%);position:fixed;top:0;width:100%;z-index:1000}
 .ac{padding:16px;padding-top:14px;max-width:1200px;margin:0 auto;width:100%;overflow:visible}
@@ -234,6 +235,7 @@ body{font-family:'Noto Serif SC',serif;color:var(--tw)}
 <script>
 (function(){
 var q=['心怀善念，所听皆是天籁','音乐是灵魂的桥梁，连接雪山与大海','在音符中感受雪域的纯净与辽阔','让歌声带你走进神秘的雪域高原','每一首歌都是一次灵魂的旅行','聆听高原的风声，感受生命的律动'];
+var bgImg=document.querySelector('.bg-img');if(bgImg){bgImg.onload=function(){bgImg.classList.add('loaded')};if(bgImg.complete)bgImg.classList.add('loaded')}
 var tracks=[
 {title:'雪域星辉',artist:'桑杰才让 & 三智才让',cat:'local',dur:'--:--',color:'#228B22',url:'songs/10-雪域星辉.mp3',coverUrl:'',src:'local',lyrics:[]},
 {title:'奈庆布',artist:'藏族民歌',cat:'local',dur:'--:--',color:'#CC5500',url:'songs/06-奈庆布.mp3',coverUrl:'',src:'local',lyrics:[]},
